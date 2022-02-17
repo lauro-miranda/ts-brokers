@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LM.Domain" Version="1.0.0" />
+    <PackageReference Include="LM.Response" Version="1.0.1" />
+    <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.6.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Orleans.Runtime.Abstractions" Version="3.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TS.Brokers.GrainInterfaces\TS.Brokers.GrainInterfaces.csproj" />
+    <ProjectReference Include="..\TS.Brokers.States\TS.Brokers.States.csproj" />
+  </ItemGroup>
+
+</Project>
