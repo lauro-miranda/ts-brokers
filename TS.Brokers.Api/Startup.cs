@@ -4,6 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Orleans;
+using Orleans.Hosting;
+using System;
+using System.Collections.Concurrent;
+using TS.Brokers.Api.Services;
+using TS.Brokers.States;
 
 namespace TS.Brokers.Api
 {
@@ -24,6 +30,12 @@ namespace TS.Brokers.Api
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TS.Brokers.Api", Version = "v1" });
             });
+
+            CreateClusterClient(services);
+
+            services.AddSingleton<ConcurrentDictionary<Guid, StockState>>();
+
+            services.AddHostedService<StockBackgroundService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -44,6 +56,21 @@ namespace TS.Brokers.Api
             {
                 endpoints.MapControllers();
             });
+        }
+
+        void CreateClusterClient(IServiceCollection services)
+        {
+            var builder = new ClientBuilder();
+
+            builder.UseLocalhostClustering();
+
+            builder.AddSimpleMessageStreamProvider("stock-stream-provider");
+
+            var client = builder.Build();
+
+            client.Connect().GetAwaiter().GetResult();
+
+            services.AddSingleton(client);
         }
     }
 }

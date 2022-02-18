@@ -3,7 +3,6 @@ using LM.Responses;
 using LM.Responses.Extensions;
 using Orleans;
 using Orleans.Providers;
-using Orleans.Runtime;
 using System.Threading.Tasks;
 using TS.Brokers.GrainInterfaces;
 using TS.Brokers.Messages;
@@ -12,13 +11,12 @@ using TS.Brokers.States;
 namespace TS.Brokers.Grains
 {
     [StorageProvider(ProviderName = "customerStore")]
-    public class CustomerGrain : Grain, ICustomerGrain
+    public class CustomerGrain : Grain<CustomerState>, ICustomerGrain
     {
-        IPersistentState<CustomerState> Customer { get; }
-
-        public CustomerGrain([PersistentState("customer", "customerStore")] IPersistentState<CustomerState> state)
+        public override async Task OnActivateAsync()
         {
-            Customer = state;
+            await ReadStateAsync();
+            await base.OnActivateAsync();
         }
 
         public async Task<Response> Create(CustomerRequestMessage message)
@@ -33,21 +31,21 @@ namespace TS.Brokers.Grains
 
             if (response.HasError) return response;
 
-            Customer.State = new CustomerState()
+            State = new CustomerState()
             {
                 Identification = message.Identification,
                 Name = message.Name,
                 CreatedAt = DateTimeHelper.GetCurrentDate()
             };
 
-            await Customer.WriteStateAsync();
+            await WriteStateAsync();
 
             return await Task.FromResult(response);
         }
 
         public async Task<CustomerState> Get()
         {
-            return await Task.FromResult(Customer.State);
+            return await Task.FromResult(State);
         }
     }
 }
