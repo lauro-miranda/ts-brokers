@@ -33,7 +33,7 @@ namespace TS.Brokers.Api
 
             CreateClusterClient(services);
 
-            services.AddSingleton<ConcurrentDictionary<Guid, StockState>>();
+            services.AddSingleton<ConcurrentDictionary<string, StockState>>();
 
             services.AddHostedService<StockBackgroundService>();
         }

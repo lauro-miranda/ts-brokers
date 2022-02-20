@@ -7,5 +7,7 @@ namespace TS.Brokers.GrainInterfaces
         Task Start(Guid id, string namespaceName);
 
         Task StopProducing();
+
+        Task<decimal> GetPrice();
     }
 }

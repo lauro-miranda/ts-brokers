@@ -20,4 +20,8 @@
 		<ProjectReference Include="..\TS.Brokers.States\TS.Brokers.States.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Abstracts\" />
+	</ItemGroup>
+
 </Project>

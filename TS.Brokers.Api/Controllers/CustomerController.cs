@@ -2,9 +2,11 @@
 using LM.Responses.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Orleans;
+using System.Linq;
 using System.Threading.Tasks;
 using TS.Brokers.GrainInterfaces;
 using TS.Brokers.Messages;
+using TS.Brokers.Messages.Balances;
 
 namespace TS.Brokers.Api.Controllers
 {
@@ -53,12 +55,48 @@ namespace TS.Brokers.Api.Controllers
 
             var state = await grain.Get();
 
-            return Ok(response.SetValue(new CustomerResponseMessage
+            var message = new CustomerResponseMessage
             {
                 Name = state.Name,
                 CreatedAt = state.CreatedAt,
-                Identification = state.Identification
-            }));
+                Identification = state.Identification,
+            };
+
+            foreach (var asset in state.Assets)
+            {
+                message.Assets.Add(asset.Key, asset.Value.Select(a => new CustomerResponseMessage.AssetResponseMessage
+                {
+                    ModuleType = a.ModuleType.GetDescription(),
+                    Price = a.Price,
+                    PurchasePrice = a.PurchasePrice,
+                    Quantity = a.Quantity,
+                    PurchasingPower = a.PurchasingPower,
+                    UpdatedAt = a.UpdatedAt,
+                    CreatedAt = a.CreatedAt
+                }).ToList());
+            }
+
+            return Ok(response.SetValue(message));
+        }
+
+        [HttpGet, Route("balance/{identification}")]
+        public async Task<IActionResult> DepositAsync(string identification)
+        {
+            var response = Response<object>.Create(true);
+
+            var balance = await ClusterClient.GetGrain<IBalanceGrain>(identification).Get();
+
+            return Ok(response.SetValue(balance));
+        }
+
+        [HttpPost, Route("balance")]
+        public async Task<IActionResult> DepositAsync([FromBody] BalanceRequestMessage message)
+        {
+            var response = Response<bool>.Create(true);
+
+            await ClusterClient.GetGrain<IBalanceGrain>(message.Identification).Deposit(message);
+
+            return Ok(response);
         }
     }
 }

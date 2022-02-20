@@ -3,6 +3,7 @@ using Orleans;
 using Orleans.Streams;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TS.Brokers.GrainInterfaces;
@@ -14,12 +15,17 @@ namespace TS.Brokers.Api.Services
     {
         IClusterClient ClusterClient { get; }
 
-        ConcurrentDictionary<Guid, StockState> Stock { get; set; }
+        ConcurrentDictionary<string, StockState> Stock { get; set; }
 
         Guid Id { get; } = Guid.NewGuid();
 
+        List<string> Stocks = new List<string>
+        {
+            "PETR1", "PETR2", "PETR3", "PETR4", "PETR5"
+        };
+
         public StockBackgroundService(IClusterClient clusterClient
-            , ConcurrentDictionary<Guid, StockState> stock)
+                , ConcurrentDictionary<string, StockState> stock)
         {
             ClusterClient = clusterClient;
             Stock = stock;
@@ -27,18 +33,22 @@ namespace TS.Brokers.Api.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var grain = ClusterClient.GetGrain<IStockExchangeGrain>("PETR4");
-            await grain.Start(Id, "stock-namespace");
+            foreach (var stock in Stocks)
+            {
+                var grain = ClusterClient.GetGrain<IStockExchangeGrain>(stock);
 
-            var stream = ClusterClient.GetStreamProvider("stock-stream-provider")
-                .GetStream<StockState>(Id, "stock-namespace");
-            
-            await stream.SubscribeAsync(OnNextAsync);
+                await grain.Start(Id, "stock-namespace");
+
+                var stream = ClusterClient.GetStreamProvider("stock-stream-provider")
+                    .GetStream<StockState>(Id, "stock-namespace");
+
+                await stream.SubscribeAsync(OnNextAsync);
+            }
         }
 
         Task OnNextAsync(StockState state, StreamSequenceToken token = null)
         {
-            Stock[Id] = state;
+            Stock[state.Symbol] = state;
             return Task.CompletedTask;
         }
     }

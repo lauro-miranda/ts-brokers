@@ -10,5 +10,11 @@ namespace TS.Brokers.GrainInterfaces
         Task<Response> Create(CustomerRequestMessage message);
 
         Task<CustomerState> Get();
+
+        Task<Response> AddAsset(string symbol, CustomerState.AssetState asset);
+
+        Task UpdatePrice(string symbol, decimal price);
+
+        Task UpdateAsset(Guid code, string symbol, int quantity, decimal salePrice);
     }
 }

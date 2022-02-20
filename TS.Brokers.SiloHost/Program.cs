@@ -14,6 +14,9 @@ namespace TS.Brokers.SiloHost
              {
                  builder.UseLocalhostClustering();
                  builder.AddMemoryGrainStorage("customerStore");
+                 builder.AddMemoryGrainStorage("dayTradeStore");
+                 builder.AddMemoryGrainStorage("swingTradeStore");
+                 builder.AddMemoryGrainStorage("balanceStore");
 
                  builder.AddSimpleMessageStreamProvider("stock-stream-provider")
                     .AddMemoryGrainStorage("PubSubStore");

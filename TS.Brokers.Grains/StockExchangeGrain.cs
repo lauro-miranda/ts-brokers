@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using Orleans;
+﻿using Orleans;
 using Orleans.Providers;
 using Orleans.Streams;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TS.Brokers.GrainInterfaces;
 using TS.Brokers.States;
@@ -20,7 +20,7 @@ namespace TS.Brokers.Grains
         {
             await ReadStateAsync();
 
-            State = new StockState 
+            State = new StockState
             {
                 Symbol = this.GetPrimaryKeyString(),
                 Price = 27.00m,
@@ -56,6 +56,11 @@ namespace TS.Brokers.Grains
             }
 
             return Task.CompletedTask;
+        }
+
+        public Task<decimal> GetPrice()
+        {
+            return Task.FromResult(State.Price);
         }
     }
 }

@@ -8,9 +8,9 @@ namespace TS.Brokers.Api.Controllers
     [ApiController, Route("api/[controller]")]
     public class StockController : ControllerBase
     {
-        ConcurrentDictionary<Guid, StockState> Stocks { get; } = new ConcurrentDictionary<Guid, StockState>();
+        ConcurrentDictionary<string, StockState> Stocks { get; } = new ConcurrentDictionary<string, StockState>();
 
-        public StockController(ConcurrentDictionary<Guid, StockState> stocks)
+        public StockController(ConcurrentDictionary<string, StockState> stocks)
         {
             Stocks = stocks;
         }
