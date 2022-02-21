@@ -1,14 +1,20 @@
+using Lib.AspNetCore.ServerSentEvents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Orleans;
 using Orleans.Hosting;
-using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using TS.Brokers.Api.Services;
+using TS.Brokers.Api.SSE;
+using TS.Brokers.Api.SSE.Interfaces;
+using TS.Brokers.Api.SSE.Services;
+using TS.Brokers.Api.SSE.Services.Interfaces;
 using TS.Brokers.States;
 
 namespace TS.Brokers.Api
@@ -24,6 +30,22 @@ namespace TS.Brokers.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
+
+            services.AddServerSentEvents();
+
+            services.AddServerSentEvents<IStockExchangeServerSentEvents, StockExchangeServerSentEvents>(options => 
+            {
+                options.ReconnectInterval = 5000;
+            });
+
+            services.AddTransient<IStockExchangeNotificationService, StockExchangeService>();
+
+            services.AddResponseCompression(options => 
+            {
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "text/event-stream" });
+            });
+
             services.AddControllers();
 
             services.AddSwaggerGen(c =>
@@ -33,9 +55,11 @@ namespace TS.Brokers.Api
 
             CreateClusterClient(services);
 
-            services.AddSingleton<ConcurrentDictionary<string, StockState>>();
+            services.AddSingleton<ConcurrentDictionary<string, StockState>>()
+                .AddSingleton<ConcurrentDictionary<string, BalanceState>>();
 
             services.AddHostedService<StockBackgroundService>();
+            services.AddHostedService<BalanceBackgroundService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -44,6 +68,14 @@ namespace TS.Brokers.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .SetIsOriginAllowed(origin => true)
+                .AllowCredentials());
+
+            app.UseResponseCompression();
 
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Laboratório: Corretora"));
@@ -54,6 +86,7 @@ namespace TS.Brokers.Api
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapServerSentEvents<StockExchangeServerSentEvents>("stock-notifications");
                 endpoints.MapControllers();
             });
         }
@@ -65,6 +98,7 @@ namespace TS.Brokers.Api
             builder.UseLocalhostClustering();
 
             builder.AddSimpleMessageStreamProvider("stock-stream-provider");
+            builder.AddSimpleMessageStreamProvider("balance-stream-provider");
 
             var client = builder.Build();
 

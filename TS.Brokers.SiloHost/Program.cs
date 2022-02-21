@@ -19,6 +19,7 @@ namespace TS.Brokers.SiloHost
                  builder.AddMemoryGrainStorage("balanceStore");
 
                  builder.AddSimpleMessageStreamProvider("stock-stream-provider")
+                    .AddSimpleMessageStreamProvider("balance-stream-provider")
                     .AddMemoryGrainStorage("PubSubStore");
 
                  builder.UseDashboard(options =>

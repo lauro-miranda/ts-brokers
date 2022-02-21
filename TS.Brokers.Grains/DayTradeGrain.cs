@@ -111,7 +111,7 @@ namespace TS.Brokers.Grains
             var grain = ClusterClient.GetGrain<IStockExchangeGrain>(symbol);
 
             var id = Guid.NewGuid();
-            await grain.Start(id, "stock-namespace");
+            await grain.SubscribeAsync(id, "stock-namespace");
 
             var stream = ClusterClient.GetStreamProvider("stock-stream-provider")
                 .GetStream<StockState>(id, "stock-namespace");

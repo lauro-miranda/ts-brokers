@@ -1,0 +1,26 @@
+﻿@page "/stock"
+@using TS.Brokers.Web.Models
+
+<PageTitle>Ações</PageTitle>
+
+<h1>Ações</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Símbolo</th>
+            <th>Quantidade</th>
+            <th>Preço</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var stock in Stocks.Values)
+        {
+            <tr>
+                <td>@stock.Symbol</td>
+                <td>@stock.Quantity</td>
+                <td>@stock.Price</td>
+            </tr>
+        }
+    </tbody>
+</table>

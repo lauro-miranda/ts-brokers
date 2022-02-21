@@ -1,5 +1,7 @@
 ﻿using Orleans;
 using Orleans.Providers;
+using Orleans.Streams;
+using System;
 using System.Threading.Tasks;
 using TS.Brokers.GrainInterfaces;
 using TS.Brokers.Messages.Balances;
@@ -10,22 +12,44 @@ namespace TS.Brokers.Grains
     [StorageProvider(ProviderName = "balanceStore")]
     public class BalanceGrain : Grain<BalanceState>, IBalanceGrain
     {
-        public Task Deposit(BalanceRequestMessage message)
+        IAsyncStream<BalanceState> Stream { get; set; }
+
+        public async Task Deposit(BalanceRequestMessage message)
         {
             if (!string.IsNullOrEmpty(State.Identification))
-                return Task.FromResult(Deposit(message.Value));
+            {
+                await Deposit(message.Value);
+                return;
+            }
 
             State = new BalanceState { Identification = this.GetPrimaryKeyString(), Value = message.Value };
-            return Task.CompletedTask;
+
+            await SendsteamAsync();
         }
 
-        public Task Deposit(decimal value)
+        public async Task Deposit(decimal value)
         {
-            return Task.FromResult(State.Value += value);
+            State.Value += value;
+            await SendsteamAsync();
         }
 
         public Task<BalanceState> Get() => Task.FromResult(State);
 
-        public Task Update(decimal value) => Task.FromResult(State.Value = value);
+        public async Task Update(decimal value)
+        {
+            State.Value = value;
+            await SendsteamAsync();
+        }
+
+        public Task SubscribeAsync(Guid id, string namespaceName)
+        {
+            State = new BalanceState { Identification = this.GetPrimaryKeyString(), Value = 0 };
+
+            Stream = GetStreamProvider("balance-stream-provider").GetStream<BalanceState>(id, namespaceName);
+
+            return Task.CompletedTask;
+        }
+
+        public async Task SendsteamAsync() => await Stream.OnNextAsync(State);
     }
 }

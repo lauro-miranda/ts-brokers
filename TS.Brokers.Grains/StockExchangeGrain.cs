@@ -30,7 +30,7 @@ namespace TS.Brokers.Grains
             await base.OnActivateAsync();
         }
 
-        public Task Start(Guid id, string namespaceName)
+        public Task SubscribeAsync(Guid id, string namespaceName)
         {
             Stream = GetStreamProvider("stock-stream-provider").GetStream<StockState>(id, namespaceName);
 

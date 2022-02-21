@@ -13,5 +13,7 @@ namespace TS.Brokers.GrainInterfaces
         Task<BalanceState> Get();
 
         Task Update(decimal value);
+
+        Task SubscribeAsync(Guid id, string namespaceName);
     }
 }

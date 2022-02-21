@@ -6,7 +6,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TS.Brokers.Api.SSE.Services.Interfaces;
 using TS.Brokers.GrainInterfaces;
+using TS.Brokers.Messages.StockExchanges.SSE;
 using TS.Brokers.States;
 
 namespace TS.Brokers.Api.Services
@@ -17,6 +19,8 @@ namespace TS.Brokers.Api.Services
 
         ConcurrentDictionary<string, StockState> Stock { get; set; }
 
+        IStockExchangeNotificationService StockExchangeNotificationService { get; }
+
         Guid Id { get; } = Guid.NewGuid();
 
         List<string> Stocks = new List<string>
@@ -25,10 +29,12 @@ namespace TS.Brokers.Api.Services
         };
 
         public StockBackgroundService(IClusterClient clusterClient
-                , ConcurrentDictionary<string, StockState> stock)
+            , ConcurrentDictionary<string, StockState> stock
+            , IStockExchangeNotificationService stockExchangeNotificationService)
         {
             ClusterClient = clusterClient;
             Stock = stock;
+            StockExchangeNotificationService = stockExchangeNotificationService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -37,7 +43,7 @@ namespace TS.Brokers.Api.Services
             {
                 var grain = ClusterClient.GetGrain<IStockExchangeGrain>(stock);
 
-                await grain.Start(Id, "stock-namespace");
+                await grain.SubscribeAsync(Id, "stock-namespace");
 
                 var stream = ClusterClient.GetStreamProvider("stock-stream-provider")
                     .GetStream<StockState>(Id, "stock-namespace");
@@ -46,10 +52,15 @@ namespace TS.Brokers.Api.Services
             }
         }
 
-        Task OnNextAsync(StockState state, StreamSequenceToken token = null)
+        async Task OnNextAsync(StockState state, StreamSequenceToken token = null)
         {
             Stock[state.Symbol] = state;
-            return Task.CompletedTask;
+            await StockExchangeNotificationService.SendAsync(new StockUpdatedMessage
+            {
+                Price = state.Price,
+                Quantity = state.Quantity,
+                Symbol = state.Symbol
+            });
         }
     }
 }
