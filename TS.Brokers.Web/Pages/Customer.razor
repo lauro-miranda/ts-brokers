@@ -1,0 +1,28 @@
+﻿@page "/customer"
+@using TS.Brokers.Web.Data
+
+<PageTitle>Customer</PageTitle>
+
+<nav class="row">
+    <span>Cadastre-se</span>
+    <div class="col-md-4 form-group">
+        <input type="text" placeholder="Identification" class="form-control" @bind-value="CustomerData.Identification" />
+    </div>
+    <div class="col-md-4 form-group">
+        <input type="text" placeholder="Nome" class="form-control" @bind-value="CustomerData.Name" />
+    </div>
+    <div class="col-md-4 form-group">
+        <input type="button" value="Criar" class="btn btn-primary" @onclick="Create" />
+    </div>
+</nav>
+
+<hr />
+<nav class="row">
+    <span>Adicione saldo</span>
+    <div class="col-md-4 form-group">
+        <input type="text" placeholder="Valor" class="form-control" @bind-value="Value" />
+    </div>
+    <div class="col-md-4 form-group">
+        <input type="button" value="Depositar" class="btn btn-primary" @onclick="Deposit" />
+    </div>
+</nav>

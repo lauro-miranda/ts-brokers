@@ -1,0 +1,22 @@
+﻿@page "/order"
+@using TS.Brokers.Web.Data
+
+<PageTitle>Orders</PageTitle>
+
+<nav class="row">
+    <div class="col-md-4 form-group">
+        <input type="text" placeholder="Símbolo" class="form-control" @bind-value="Symbol" />
+    </div>
+    <div class="col-md-4 form-group">
+        <input type="number" placeholder="Quantidade" class="form-control" @bind-value="Quantity" />
+    </div>
+    <div class="col-md-4 form-group">
+        <input type="m" placeholder="Preço" class="form-control" @bind-value="PurchasePrice" />
+    </div>
+    
+</nav>
+<nav class="row">
+    <div class="col-md-4 form-group">
+        <input type="button" value="Criar" class="btn btn-primary" @onclick="Purchase" />
+    </div>
+</nav>

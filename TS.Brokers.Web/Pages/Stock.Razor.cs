@@ -2,13 +2,12 @@
 using Microsoft.AspNetCore.Components;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
-using TS.Brokers.Web.Models;
 
 namespace TS.Brokers.Web.Pages
 {
     public partial class Stock : ComponentBase, IDisposable
     {
-        public ConcurrentDictionary<string, StockModel> Stocks { get; set; } = new ConcurrentDictionary<string, StockModel>();
+        public ConcurrentDictionary<string, Data.Stock> Stocks { get; set; } = new ConcurrentDictionary<string, Data.Stock>();
 
         public int CurrentCount { get; set; } = 0;
 
@@ -44,7 +43,7 @@ namespace TS.Brokers.Web.Pages
 
         void EventSource_MessageReceived(object? sender, MessageReceivedEventArgs e)
         {
-            var stock = JsonConvert.DeserializeObject<StockModel>(e.Message.Data);
+            var stock = JsonConvert.DeserializeObject<Data.Stock>(e.Message.Data);
 
             if (stock == null)
                 return;

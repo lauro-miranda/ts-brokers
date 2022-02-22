@@ -1,6 +1,6 @@
-﻿namespace TS.Brokers.Web.Models
+﻿namespace TS.Brokers.Web.Data
 {
-    public class StockModel
+    public class Stock
     {
         public string Symbol { get; set; } = "";
 
